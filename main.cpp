@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <cstdlib>
 #include <format>
 #include <cstring>
@@ -11,17 +12,15 @@
 #include <unistd.h>
 
 //! begins listening on my_port
-int start_server(int my_port) {
+int start_server(uint16_t my_port) {
     struct sockaddr_in my_sockaddr;
-    std::cout << "here we go" << std::endl;
     memset(&my_sockaddr, 0, sizeof(my_sockaddr));           // Zero out the struct memory
-    std::cout << "that was fine..." << std::endl;
     my_sockaddr.sin_family = AF_INET;
     my_sockaddr.sin_port = htons(my_port);
     my_sockaddr.sin_addr = (struct in_addr) INADDR_ANY;     // 0.0.0.0
 
     // syscall socket()
-    int sock_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    int sock_fd {socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)};
     // syscall bind()
     if (bind(sock_fd, (struct sockaddr *) &my_sockaddr, sizeof(my_sockaddr)) != 0) {
         std::cout << "bind failed" << std::endl;
@@ -44,7 +43,7 @@ int handle_request(int clientfd) {
     memset(&buf, 0, sizeof(buf));
     memset(&req, 0, sizeof(req));
 
-    int read_length = read(clientfd, &buf, sizeof(buf));
+    long read_length {read(clientfd, &buf, sizeof(buf))};
     memcpy(&req, &buf, 4);      // copy first 4 bytes into req
     if ((std::string)req == "GET ") {
 
@@ -55,27 +54,28 @@ int handle_request(int clientfd) {
 }
 
 int main(int argc, char* argv[]) {
-    int my_port;
-    std::cout << std::format("argc: {}", argc) << std::endl;
+    uint16_t my_port {};
     if (argc < 2) {
-        std::cout << "no arg given. using port 80" << std::endl;
+        std::cout << "no arg given. using port 80\n";
         // assign default port 80
         my_port = 80;
     } else {
-        my_port = strtol(argv[1], NULL, 10);
-        if (my_port < 1024 || my_port > 60999) {
-            std::cout << "Given port must be between 1024 and 60999" << std::endl;
+        long my_long_port {strtol(argv[1], NULL, 10)};
+        if (my_long_port < 1024 || my_long_port > 60999) {
+            std::cout << "Given port must be between 1024 and 60999\n";
             return -1;
         }
+        my_port = (uint16_t) my_long_port;
     }
-    int sock_fd = start_server(my_port);
+    std::cout << std::format("Starting server on port {}\n", my_port);
+    int sock_fd = {start_server(my_port)};
     if (sock_fd < 0) {
         return -1;
     }
 
     while (true) {
-        int client_fd = accept(sock_fd, NULL, NULL);
-        int fork_id = fork();
+        int client_fd {accept(sock_fd, NULL, NULL)};
+        int fork_id {fork()};
 
         if (fork_id != 0) {
             close(client_fd);
