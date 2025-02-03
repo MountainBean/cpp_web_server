@@ -1,4 +1,3 @@
-#include <cstdint>
 #include <cstdlib>
 #include <format>
 #include <cstring>
@@ -12,7 +11,7 @@
 #include <unistd.h>
 
 //! begins listening on my_port
-int start_server(uint16_t my_port) {
+int start_server(unsigned short my_port) {
     struct sockaddr_in my_sockaddr;
     memset(&my_sockaddr, 0, sizeof(my_sockaddr));           // Zero out the struct memory
     my_sockaddr.sin_family = AF_INET;
@@ -54,7 +53,7 @@ int handle_request(int clientfd) {
 }
 
 int main(int argc, char* argv[]) {
-    uint16_t my_port {};
+    unsigned short my_port {};
     if (argc < 2) {
         std::cout << "no arg given. using port 80\n";
         // assign default port 80
@@ -65,7 +64,7 @@ int main(int argc, char* argv[]) {
             std::cout << "Given port must be between 1024 and 60999\n";
             return -1;
         }
-        my_port = (uint16_t) my_long_port;
+        my_port = (unsigned short) my_long_port;
     }
     std::cout << std::format("Starting server on port {}\n", my_port);
     int sock_fd = {start_server(my_port)};
