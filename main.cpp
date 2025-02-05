@@ -38,14 +38,11 @@ int start_server(std::uint16_t my_port) {
 // child process handle function
 int handle_request(int clientfd) {
     char buf[1024];
-    char req[5];
-
-    memset(&buf, 0, sizeof(buf));
-    memset(&req, 0, sizeof(req));
+    std::string getReq { "GET " };
 
     long read_length {read(clientfd, &buf, sizeof(buf))};
-    memcpy(&req, &buf, 4);      // copy first 4 bytes into req
-    if ((std::string)req == "GET ") {
+    std::string req { buf };
+    if (req.substr(0, 4) == getReq) {
 
         write(4, "HTTP/1.1 200 OK\r\n\r\n", 19);
     }
@@ -56,9 +53,8 @@ int handle_request(int clientfd) {
 int main(int argc, char* argv[]) {
     std::uint16_t my_port {};
     if (argc < 2) {
-        std::cout << "no arg given. using port 80\n";
-        // assign default port 80
-        my_port = 80;
+        std::cout << "Please enter a port number ( >1024 ): \n";
+        std::cin >> my_port;
     } else {
         long my_long_port {strtol(argv[1], NULL, 10)};
         if (my_long_port < 1024 || my_long_port > 60999) {
