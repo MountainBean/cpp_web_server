@@ -12,7 +12,12 @@
 
 //! begins listening on my_port
 int start_server(std::uint16_t my_port) {
-    struct sockaddr_in my_sockaddr {};
+    struct sockaddr_in my_sockaddr {
+        .sin_family = AF_INET,      // Clang gives a false warning here if you
+        .sin_port = htons(my_port), // use brace-initialisation.
+        .sin_addr{static_cast<struct in_addr>(INADDR_ANY)},
+        .sin_zero{}
+    };
     my_sockaddr.sin_family = AF_INET;
     my_sockaddr.sin_port = htons(my_port);
     my_sockaddr.sin_addr = static_cast<struct in_addr>(INADDR_ANY);     // 0.0.0.0
@@ -39,7 +44,8 @@ int handle_request(int clientfd) {
     char buf[1024];
     constexpr std::string_view getReq { "GET " };
 
-    long read_length {read(clientfd, &buf, sizeof(buf))};
+    // TODO: remove the [[maybe_unused]] when we eventually check our read_length
+    [[maybe_unused]] long read_length {read(clientfd, &buf, sizeof(buf))};
     std::string_view req { buf };
     if (req.substr(0, 4) == getReq) {
 
